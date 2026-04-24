@@ -1,0 +1,82 @@
+This file is a log of my coding process for assignment 3. Each new line is marks a new significant action I took.
+
+I installed WSL2 with Ubuntu as my distro, and then installed important packages like Git, NodeJS, and more.
+
+I configured WSL2 with VSCode and Docker on Windows to edit and manage my WSL2 files on my usual environment. 
+
+I followed the steps to set up assign3, then deleted the contents of the App function to begin following the tutorial.
+
+I implemented the Board function which creates a grid of 9 squares numbered 1-9.
+    <div className="board-row">
+        <button className="square">1</button>
+        <button className="square">2</button>
+        <button className="square">3</button>
+    </div>
+
+I changed the Board implementation to use multiple Square components with a value property.
+    function Square({ value }) {
+        return <button className="square">{value}</button>;
+    }
+
+I changed the Square implementation to use useState, changing its value to X on click.
+    const [value, setValue] = useState(null);
+
+I changed the app structure so that Board handles all square values. Board's useState creates an array of 9 squares initialized with null, while Square takes in the value from Board as a property. Board's handleClick function is passed as a property to Square's onSquareClick function to change each square's value to X on click.
+    const [squares, setSquares] = useState(Array(9).fill(null));
+    <div className="board-row">
+        <Square value={squares[0]} onSquareClick={handleClick} />
+        <Square value={squares[1]} onSquareClick={handleClick} />
+        <Square value={squares[2]} onSquareClick={handleClick} />
+    </div>
+    function handleClick(i) {
+        const nextSquares = squares.slice();
+        nextSquares[i] = "X";
+        setSquares(nextSquares);
+    }
+
+I allowed for the O player to take turns, using booleans to alternate between X and O on click.
+    if (xIsNext) nextSquares[i] = "X";
+    else nextSquares[i] = "O";
+
+I implemented the ability to win the game with a calculateWinner function and booleans to determine whether a player has won or not and if so, which one.
+    const winner = calculateWinner(squares);
+    let status;
+    if (winner) status = "Winner: " + winner;
+    else status = "Next player: " + (xIsNext ? "X" : "O");
+
+I implemented the Game function to allow a board history feature to be implemented.
+    const [xIsNext, setXIsNext] = useState(true);
+    const [history, setHistory] = useState([Array(9).fill(null)]);
+    const currentSquares = history[history.length - 1];
+
+I changed the app structure so that Game handles Board's squares and states through properties. Game passes in xIsNext, squares, and onPlay as properties to Board, which the Board relies on, allowing the Game function to control the board.
+    function Board({ xIsNext, squares, onPlay }) { ... }
+
+I mapped the history array to an array of moves, and for each move I created a button to go to that specific move with the list key as the move.
+    const moves = history.map((squares, move) => {
+        let description;
+        if (move > 0) description = 'Go to move #' + move;
+        else description = 'Go to game start';
+        return (
+        <li key={move}>
+            <button onClick={() => jumpTo(move)}>{description}</button>
+        </li>
+        );
+    });
+
+I implemented jumpTo by creating a new variable, currentMove, to track the game state currently being viewed.
+    const [currentMove, setCurrentMove] = useState(0);
+    function jumpTo(nextMove) {
+        setCurrentMove(nextMove);
+        setXIsNext(nextMove % 2 === 0);
+    }
+I created a nextHistory array to change the history accordingly if a new move is played while viewing an older one.
+    function handlePlay(nextSquares) {
+        const nextHistory = [...history.slice(0, currentMove + 1), nextSquares];
+        setHistory(nextHistory);
+        setCurrentMove(nextHistory.length - 1);
+        setXIsNext(!xIsNext);
+    }
+
+I eliminated the xIsNext redundancy by relying on currentMove % 2 to check which player's turn it is.
+    const xIsNext = currentMove % 2 === 0;
