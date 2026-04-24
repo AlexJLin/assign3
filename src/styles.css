@@ -69,6 +69,10 @@ ul {
   width: 34px;
 }
 
+.square.selected {
+  background-color: #ffde71;
+}
+
 .board-row:after {
   clear: both;
   content: '';

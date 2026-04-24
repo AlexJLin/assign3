@@ -1,0 +1,60 @@
+This file is a log of my coding process for the Chorus Lapilli variant of tic-tac-toe. Each new line marks a new significant action I took.
+
+I created a pieceCount variable to track the number of pieces played by filtering squares to get how many pieces the current player has played.
+    const pieceCount = squares.filter(s => s === currentPlayer).length;
+
+I added a useState to check whether or not a piece is selected to determine if a piece should be moved when the user performs a valid move.
+    const [selected, setSelected] = useState(null);
+
+I added an isSelected prop to Square so the selected piece could be highlighted in CSS.
+    function Square({ value, onSquareClick, isSelected }) {
+        const className = isSelected ? "square selected" : "square";
+        return <button className={className} onClick={onSquareClick}>{value}</button>;
+    }
+
+I created an isAdjacent helper function to determine whether two squares are adjacent. I converted each index to (row, col) using /3 and %3, then checked that the row and column distances were both <= 1 but not both 0 (same square).
+    function isAdjacent(fromIndex, toIndex) {
+        const fromRow = Math.floor(fromIndex / 3);
+        const fromCol = fromIndex % 3;
+        const toRow = Math.floor(toIndex / 3);
+        const toCol = toIndex % 3;
+        const rowDistance = Math.abs(fromRow - toRow);
+        const colDistance = Math.abs(fromCol - toCol);
+        return (rowDistance <= 1 && colDistance <= 1) && !(rowDistance === 0 && colDistance === 0);
+    }
+
+I changed handleClick so that if the current player has less than 3 pieces placed, the behavior is like the original tic-tac-toe game. If they have 3 or more pieces played, there is a first click (piece selection) and second click (piece movement) phase.
+
+I implemented the first click (piece selection) logic. If nothing is selected and the user clicks on one of their pieces, it becomes selected.
+    if (selected === null) {
+        if (squares[i] !== currentPlayer) return;
+        setSelected(i);
+        return;
+    }
+
+I implemented the second click (piece movement) logic. If the target destination for a selected piece is invalid, the piece is unselected and the function returns. Otherwise, the selected piece moves as intended.
+    const from = selected;
+    const to = i;
+    const targetEmpty = squares[to] === null;
+    const adjacent = isAdjacent(from, to);
+    if (!targetEmpty || !adjacent || from === to) {
+        setSelected(null);
+        return;
+    }
+    const nextSquares = squares.slice();
+    nextSquares[from] = null;
+    nextSquares[to] = currentPlayer;
+
+I implemented the center-square rule. If the player currently occupies square 4 (the center), their move must either win or leave the center. Otherwise, piece is selected and the function returns.
+    if (squares[4] === currentPlayer) {
+        const moveWins = calculateWinner(nextSquares) === currentPlayer;
+        const vacatesCenter = from === 4;
+        if (!moveWins && !vacatesCenter) {
+            setSelected(null);
+            return;
+        }
+    }
+
+Every turn, the selection is cleared before calling onPlay so the next player starts with no pieces selected.
+    setSelected(null);
+    onPlay(nextSquares);

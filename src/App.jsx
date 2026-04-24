@@ -4,16 +4,49 @@ import { useState } from 'react';
 
 const { Badge, Button, Card } = ReactBootstrap
 
-function Square({ value, onSquareClick }) {
-  return <button className="square" onClick={onSquareClick}>{value}</button>;
+function Square({ value, onSquareClick, isSelected }) {
+  const className = isSelected ? "square selected" : "square";
+  return <button className={className} onClick={onSquareClick}>{value}</button>;
 }
 
 function Board({ xIsNext, squares, onPlay }) {
+  const [selected, setSelected] = useState(null);
   function handleClick(i) {
-    if (squares[i] || calculateWinner(squares)) return;
+    if (calculateWinner(squares)) return;
+    const currentPlayer = xIsNext ? "X" : "O";
+    const pieceCount = squares.filter(s => s === currentPlayer).length;
+    if (pieceCount < 3) {
+      if (squares[i]) return;
+      const nextSquares = squares.slice();
+      nextSquares[i] = currentPlayer;
+      onPlay(nextSquares);
+      return;
+    }
+    if (selected === null) {
+      if (squares[i] !== currentPlayer) return;
+      setSelected(i);
+      return;
+    }
+    const from = selected;
+    const to = i;
+    const targetEmpty = squares[to] === null;
+    const adjacent = isAdjacent(from, to);
+    if (!targetEmpty || !adjacent || from === to) {
+      setSelected(null);
+      return;
+    }
     const nextSquares = squares.slice();
-    if (xIsNext) nextSquares[i] = "X";
-    else nextSquares[i] = "O";
+    nextSquares[from] = null;
+    nextSquares[to] = currentPlayer;
+    if (squares[4] === currentPlayer) {
+      const moveWins = calculateWinner(nextSquares) === currentPlayer;
+      const vacatesCenter = from === 4;
+      if (!moveWins && !vacatesCenter) {
+        setSelected(null);
+        return;
+      }
+    }
+    setSelected(null);
     onPlay(nextSquares);
   }
   const winner = calculateWinner(squares);
@@ -24,19 +57,19 @@ function Board({ xIsNext, squares, onPlay }) {
     <>
       <div className="status">{status}</div>
       <div className="board-row">
-        <Square value={squares[0]} onSquareClick={() => handleClick(0)} />
-        <Square value={squares[1]} onSquareClick={() => handleClick(1)} />
-        <Square value={squares[2]} onSquareClick={() => handleClick(2)} />
+        <Square value={squares[0]} onSquareClick={() => handleClick(0)} isSelected={selected === 0} />
+        <Square value={squares[1]} onSquareClick={() => handleClick(1)} isSelected={selected === 1} />
+        <Square value={squares[2]} onSquareClick={() => handleClick(2)} isSelected={selected === 2} />
       </div>
       <div className="board-row">
-        <Square value={squares[3]} onSquareClick={() => handleClick(3)} />
-        <Square value={squares[4]} onSquareClick={() => handleClick(4)} />
-        <Square value={squares[5]} onSquareClick={() => handleClick(5)} />
+        <Square value={squares[3]} onSquareClick={() => handleClick(3)} isSelected={selected === 3} />
+        <Square value={squares[4]} onSquareClick={() => handleClick(4)} isSelected={selected === 4} />
+        <Square value={squares[5]} onSquareClick={() => handleClick(5)} isSelected={selected === 5} />
       </div>
       <div className="board-row">
-        <Square value={squares[6]} onSquareClick={() => handleClick(6)} />
-        <Square value={squares[7]} onSquareClick={() => handleClick(7)} />
-        <Square value={squares[8]} onSquareClick={() => handleClick(8)} />
+        <Square value={squares[6]} onSquareClick={() => handleClick(6)} isSelected={selected === 6} />
+        <Square value={squares[7]} onSquareClick={() => handleClick(7)} isSelected={selected === 7} />
+        <Square value={squares[8]} onSquareClick={() => handleClick(8)} isSelected={selected === 8} />
       </div>
     </>
   );
@@ -78,6 +111,16 @@ export default function Game() {
       </div>
     </div>
   )
+}
+
+function isAdjacent(fromIndex, toIndex) {
+  const fromRow = Math.floor(fromIndex / 3);
+  const fromCol = fromIndex % 3;
+  const toRow = Math.floor(toIndex / 3);
+  const toCol = toIndex % 3;
+  const rowDistance = Math.abs(fromRow - toRow);
+  const colDistance = Math.abs(fromCol - toCol);
+  return (rowDistance <= 1 && colDistance <= 1) && !(rowDistance === 0 && colDistance === 0);
 }
 
 function calculateWinner(squares) {

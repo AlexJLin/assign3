@@ -1,4 +1,4 @@
-This file is a log of my coding process for assignment 3. Each new line is marks a new significant action I took.
+This file is a log of my coding process for assignment 3. Each new line marks a new significant action I took.
 
 I installed WSL2 with Ubuntu as my distro, and then installed important packages like Git, NodeJS, and more.
 
@@ -13,7 +13,7 @@ I implemented the Board function which creates a grid of 9 squares numbered 1-9.
         <button className="square">3</button>
     </div>
 
-I changed the Board implementation to use multiple Square components with a value property.
+I changed the Board implementation to use multiple Square components with a value prop.
     function Square({ value }) {
         return <button className="square">{value}</button>;
     }
@@ -21,7 +21,7 @@ I changed the Board implementation to use multiple Square components with a valu
 I changed the Square implementation to use useState, changing its value to X on click.
     const [value, setValue] = useState(null);
 
-I changed the app structure so that Board handles all square values. Board's useState creates an array of 9 squares initialized with null, while Square takes in the value from Board as a property. Board's handleClick function is passed as a property to Square's onSquareClick function to change each square's value to X on click.
+I changed the app structure so that Board handles all square values. Board's useState creates an array of 9 squares initialized with null, while Square takes in the value from Board as a prop. Board's handleClick function is passed as a prop to Square's onSquareClick function to change each square's value to X on click.
     const [squares, setSquares] = useState(Array(9).fill(null));
     <div className="board-row">
         <Square value={squares[0]} onSquareClick={handleClick} />
@@ -49,7 +49,7 @@ I implemented the Game function to allow a board history feature to be implement
     const [history, setHistory] = useState([Array(9).fill(null)]);
     const currentSquares = history[history.length - 1];
 
-I changed the app structure so that Game handles Board's squares and states through properties. Game passes in xIsNext, squares, and onPlay as properties to Board, which the Board relies on, allowing the Game function to control the board.
+I changed the app structure so that Game handles Board's squares and states through props. Game passes in xIsNext, squares, and onPlay as props to Board, which the Board relies on, allowing the Game function to control the board.
     function Board({ xIsNext, squares, onPlay }) { ... }
 
 I mapped the history array to an array of moves, and for each move I created a button to go to that specific move with the list key as the move.
